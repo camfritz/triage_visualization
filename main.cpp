@@ -1,3 +1,9 @@
+/* 
+Triage Priority Visualization Program with Priority Queues and related
+data structures. Written using openFrameworks/C++
+Created by Camron Fritz
+*/
+
 #include "ofMain.h"
 #include "ofApp.h"
 

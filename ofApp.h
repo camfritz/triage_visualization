@@ -19,6 +19,7 @@ class ofApp : public ofBaseApp{
 		void draw();
 		void update_treatmentList();
 		void build_treatmentList();
+		void insertPatient();
 
 		void keyPressed(int key);
 		void keyReleased(int key);

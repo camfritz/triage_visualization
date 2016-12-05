@@ -1,25 +1,37 @@
 #include "ofApp.h"
 #include <iostream>
 
+
+//insert new patient
+void ofApp::insertPatient() {
+	waitingRoom.push(Patient());
+	for (int check = 0; check < treatmentList.size(); check++) {
+		if (waitingRoom.top().severity == treatmentList[check].severity) {
+			waitingRoom.pop();
+			waitingRoom.push(Patient());
+		}
+	}
+}
+
 //build treatment list
 void ofApp::build_treatmentList() {
-	while (treatmentList.size() < 3) {
+	while (treatmentList.size() < 3) {	//max # of patients to be treated at one time
 		if (waitingRoom.size() > 0) {
-			treatmentList.push_back(waitingRoom.top());
+			treatmentList.push_back(waitingRoom.top());	//push waiting room into treatment list
 			waitingRoom.pop();
 		}
-		if (waitingRoom.size() == 0) {
+		if (waitingRoom.size() == 0) {	//break if waiting room is empty
 			break;
 		}
 	}
-	if (treatmentList.size() == 3 && !waitingRoom.empty()) {
+	if (treatmentList.size() == 3 && !waitingRoom.empty()) {	//handle patients not being treated in waiting room
 		nextWaiting = waitingRoom.top();
 		for (int bump = 0; bump < 3; bump++) {
 			if (waitingRoom.top().severity > treatmentList[bump].severity) {
 				waitingRoom.push(treatmentList[bump]);
 				treatmentList[bump] = waitingRoom.top();
 				waitingRoom.pop();
-				nextWaiting = waitingRoom.top();
+				nextWaiting = waitingRoom.top(); //nextWaiting is highest priority patient in waiting room
 			}
 		}
 	}
@@ -37,21 +49,21 @@ void ofApp::update_treatmentList() {
 			build_treatmentList();
 		}
 	}
-	/*
-	for (int u = 0; u < treatmentList.size(); u++) {
-		treatmentList[u].update();
-	}
-	*/
 
-	for (int treat = 0; treat < treatmentList.size(); treat++) {
-		if (treat == 0) {
-			first.treatPatient(treatmentList[treat], 1);
+	for (int patientIndex = 0; patientIndex < treatmentList.size(); patientIndex++) {	//treat current patients
+		if (patientIndex == 0) {
+			if (treatmentList[patientIndex].severity >= 45) {
+				first.treatPatient(treatmentList[patientIndex], 10);
+			}
+			else {
+				first.treatPatient(treatmentList[patientIndex], 5);
+			}
 		}
-		else if (treat == 1) {
-			second.treatPatient(treatmentList[treat], 1);
+		else if (patientIndex == 1) {
+			second.treatPatient(treatmentList[patientIndex], 2);
 		}
-		else if (treat == 2) {
-			third.treatPatient(treatmentList[treat], 1);
+		else if (patientIndex == 2) {
+			third.treatPatient(treatmentList[patientIndex], 1);
 		}
 	}
 
@@ -59,6 +71,9 @@ void ofApp::update_treatmentList() {
 		treatmentList[u].update();
 	}
 	nextWaiting.update();
+	waitingRoom.push(nextWaiting);
+	nextWaiting = waitingRoom.top();
+	waitingRoom.pop();
 }
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -70,65 +85,16 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update() {
-	if ((ofGetFrameNum() % 500) == 0) {
-		waitingRoom.push(Patient());
-		for (int check = 0; check < treatmentList.size(); check++) {
-			if (waitingRoom.top().severity == treatmentList[check].severity) {
-				waitingRoom.pop();
-				waitingRoom.push(Patient());
-			}
-		}
+	double newPatient_chance = ofRandom(0, 1);
+	if ((ofGetFrameNum() % 1000) == 0 && newPatient_chance <= 0.80) {
+		insertPatient();
 	}
 	build_treatmentList();
 	update_treatmentList();
-	/*
-	bool second_drawn = false;
-	bool third_drawn = false;
-	if ((ofGetFrameNum() % 3000) == 0) {
-		if (updateList.size() < 3) {
-			updateList.push_back(Patient());
-			waitingRoom.push(updateList.back());
-		}
-	}
-
-	if (first.severity != waitingRoom.top().severity) {
-		first = waitingRoom.top();
-	}
-	first.update();
-
-	for (int i = 0; i < updateList.size(); i++) {
-		waitingRoom.pop();
-		if (second_drawn == false) {
-			second = waitingRoom.top();
-			second_drawn = true;
-		}
-		if ((second_drawn == true) && (third_drawn == false)) {
-			waitingRoom.pop();
-			third = waitingRoom.top();
-			third_drawn = true;
-		}
-	}
-	for (int i = 0; i < updateList.size(); i++) {
-		waitingRoom.push(updateList[i]);
-	}
-	second.update();
-	third.update();
-
-	if (first.remainingLife == 0 || first.timeNeeded == 0) {
-		updateList.clear();
-		waitingRoom.pop();
-		for (int i = 0; i < waitingRoom.size(); i++) {
-			updateList.push_back(waitingRoom.top());
-			waitingRoom.pop();
-		}
-		for (int i = 0; i < updateList.size(); i++) {
-			waitingRoom.push(updateList[i]);
-		}
-	}*/
 }
 
 //--------------------------------------------------------------
-void ofApp::draw() {
+void ofApp::draw() {	//draw all current patients
 	for (int i = 0; i < treatmentList.size(); i++) {
 		if (i == 0) {
 			treatmentList[i].draw(500, 100);
@@ -140,19 +106,21 @@ void ofApp::draw() {
 			treatmentList[i].draw(500, 500);
 	}
 
+	//draw doctors
 	first.draw(800, 100);
 	second.draw(800, 300);
 	third.draw(800, 500);
+
+	//draw next waiting patient
 	if ((!waitingRoom.empty())) {
-		if (waitingRoom.top().severity == nextWaiting.severity) {
-			nextWaiting.draw(250, 650);
-		}
+		ofDrawBitmapString("Next Waiting Patient: ", 100, 550);
+		nextWaiting.draw(250, 650);
 	}
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
-	treatmentList[0].remainingLife = 0;
+	insertPatient();
 }
 
 //--------------------------------------------------------------
@@ -172,7 +140,7 @@ void ofApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-
+	treatmentList[0].remainingLife = 0;
 }
 
 //--------------------------------------------------------------

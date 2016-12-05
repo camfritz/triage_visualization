@@ -9,11 +9,13 @@ class Patient {
 		int remainingLife;
 
 		int max_timeReceived;
-		ofColor color = ofColor(ofRandom(0, 150), ofRandom(0, 150), ofRandom(0, 150));
+		ofColor color;
 		
 		friend bool operator<(Patient left, Patient right);
 		Patient();
 		void treatPatient(int time);
 		void update();
+		void adjustSeverity();
+		void adjustColor();
 		void draw(int x, int y);
 };
